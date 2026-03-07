@@ -1,0 +1,94 @@
+# ============================================================
+# CREDENCIALES Y SECRETOS — nunca subir al repositorio
+# ============================================================
+
+# Variables de entorno reales (usar .env.example como plantilla)
+.env
+
+# Claves RSA generadas localmente
+*.key
+*.pem
+*.p12
+*.jks
+**/.auth-service/
+
+# ============================================================
+# BUILD — artefactos generados por Maven
+# ============================================================
+
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ============================================================
+# IDE — IntelliJ IDEA
+# ============================================================
+
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# IntelliJ DB credentials (pueden tener contraseñas guardadas)
+.idea/dataSources/
+.idea/dataSources.local.xml
+
+# ============================================================
+# IDE — VSCode
+# ============================================================
+
+.vscode/
+*.code-workspace
+
+# ============================================================
+# IDE — Eclipse
+# ============================================================
+
+.classpath
+.project
+.settings/
+bin/
+
+# ============================================================
+# SISTEMA OPERATIVO
+# ============================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ============================================================
+# LOGS
+# ============================================================
+
+*.log
+logs/
+spring.log
+
+# ============================================================
+# DOCKER — datos de volúmenes locales (no el compose ni Dockerfile)
+# ============================================================
+
+docker-volumes/
+mysql-data/
+
+# ============================================================
+# TEMPORALES Y MISC
+# ============================================================
+
+*.tmp
+*.swp
+*.bak
+HELP.md

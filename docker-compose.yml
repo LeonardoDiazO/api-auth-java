@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: auth-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-auth_db}
+      MYSQL_USER: ${MYSQL_USER:-auth_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-auth_password}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/auth_db}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-auth_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-auth_password}
+      SPRING_FLYWAY_ENABLED: "true"
+      # JWT
+      JWT_ISSUER: ${JWT_ISSUER:-http://localhost:8081}
+      JWT_ACCESS_TTL_MINUTES: ${JWT_ACCESS_TTL_MINUTES:-15}
+      JWT_REFRESH_TTL_MINUTES: ${JWT_REFRESH_TTL_MINUTES:-60}
+      JWT_KEYS_DIR: /home/spring/.auth-service/keys
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:3000}
+      # Lockout
+      LOCKOUT_MAX_ATTEMPTS: ${LOCKOUT_MAX_ATTEMPTS:-3}
+      LOCKOUT_DURATION_MINUTES: ${LOCKOUT_DURATION_MINUTES:-30}
+      # Google OAuth2 (Option B)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      # Email (AWS SES SMTP)
+      MAIL_HOST: ${MAIL_HOST:-email-smtp.us-east-1.amazonaws.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM:-noreply@yourdomain.com}
+      MAIL_VERIFICATION_URL: ${MAIL_VERIFICATION_URL:-http://localhost:8081/api/auth/verify-email}
+      MAIL_RESET_URL: ${MAIL_RESET_URL:-http://localhost:3000/reset-password}
+    volumes:
+      - auth_keys:/home/spring/.auth-service/keys
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - auth-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  auth_keys:
+    driver: local
+
+networks:
+  auth-network:
+    driver: bridge
