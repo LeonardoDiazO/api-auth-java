@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ── Non-production: default Spring Boot human-readable console output ── -->
+    <springProfile name="!prod">
+        <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ── Production: JSON structured logging to stdout ──────────────────── -->
+    <!-- Consumed by log aggregators: Datadog, CloudWatch Logs, Loki, etc.    -->
+    <springProfile name="prod">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeCallerData>false</includeCallerData>
+                <timeZone>UTC</timeZone>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <message>message</message>
+                    <logger>logger</logger>
+                    <thread>thread</thread>
+                    <level>level</level>
+                    <!-- suppress fields not useful in cloud log aggregators -->
+                    <levelValue>[ignore]</levelValue>
+                    <version>[ignore]</version>
+                </fieldNames>
+            </encoder>
+        </appender>
+
+        <!-- Suppress verbose framework startup logs -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="INFO"/>
+        <logger name="org.flywaydb" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>
