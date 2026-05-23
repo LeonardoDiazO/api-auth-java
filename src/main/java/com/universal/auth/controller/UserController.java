@@ -8,11 +8,12 @@ import com.universal.auth.dto.response.UserResponse;
 import com.universal.auth.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * REST Controller for User Management
@@ -47,13 +48,15 @@ public class UserController {
     }
 
     /**
-     * Get all users for a specific application
-     * GET /api/users?appId=1
+     * Get users with pagination.
+     * GET /api/users?page=0&size=20&sort=userId,asc
+     * GET /api/users?appId=1&page=0&size=20
      */
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getUsersByApp(@RequestParam Long appId) {
-        List<UserResponse> response = userService.getUsersByApp(appId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Page<UserResponse>> getUsers(
+            @RequestParam(required = false) Long appId,
+            @PageableDefault(size = 20, sort = "userId") Pageable pageable) {
+        return ResponseEntity.ok(userService.getUsers(appId, pageable));
     }
 
     /**

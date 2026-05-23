@@ -5,6 +5,8 @@ import com.universal.auth.dto.request.ChangePasswordRequest;
 import com.universal.auth.dto.request.CreateUserRequest;
 import com.universal.auth.dto.request.UpdateUserRequest;
 import com.universal.auth.dto.response.UserResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -38,6 +40,11 @@ public interface UserService {
      * Get all users belonging to a specific application
      */
     List<UserResponse> getUsersByApp(Long appId);
+
+    /**
+     * Get users with pagination. Filters by appId when provided; returns all users when null.
+     */
+    Page<UserResponse> getUsers(Long appId, Pageable pageable);
 
     /**
      * Update user information

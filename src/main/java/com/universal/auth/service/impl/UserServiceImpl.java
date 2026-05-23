@@ -18,7 +18,9 @@ import com.universal.auth.repository.UserRoleRepository;
 import com.universal.auth.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserRoleRepository userRoleRepository;
     private final RoleRepository roleRepository;
     private final ApplicationRepository applicationRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -82,6 +84,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByApplication_AppId(appId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<UserResponse> getUsers(Long appId, Pageable pageable) {
+        Page<User> page = appId != null
+                ? userRepository.findByApplication_AppId(appId, pageable)
+                : userRepository.findAll(pageable);
+        return page.map(this::mapToResponse);
     }
 
     @Override
