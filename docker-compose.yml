@@ -1,26 +1,31 @@
 version: '3.8'
 
+# ─── LOCAL DEVELOPMENT ONLY ──────────────────────────────────────────────────
+# For production, point SPRING_DATASOURCE_URL at your Supabase Transaction Pooler:
+#   jdbc:postgresql://aws-0-<region>.pooler.supabase.com:6543/<db>?sslmode=require
+# and omit the `postgres` service entirely.
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: auth-mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: auth-postgres
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-auth_db}
-      MYSQL_USER: ${MYSQL_USER:-auth_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-auth_password}
+      POSTGRES_DB: ${POSTGRES_DB:-auth_db}
+      POSTGRES_USER: ${POSTGRES_USER:-auth_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-auth_password}
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - auth-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-auth_user} -d ${POSTGRES_DB:-auth_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 20s
 
   auth-service:
     build:
@@ -30,8 +35,8 @@ services:
     ports:
       - "8081:8081"
     environment:
-      # Database
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/auth_db}
+      # Database — override with Supabase URL for production
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/auth_db}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-auth_user}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-auth_password}
       SPRING_FLYWAY_ENABLED: "true"
@@ -45,27 +50,27 @@ services:
       # Lockout
       LOCKOUT_MAX_ATTEMPTS: ${LOCKOUT_MAX_ATTEMPTS:-3}
       LOCKOUT_DURATION_MINUTES: ${LOCKOUT_DURATION_MINUTES:-30}
-      # Google OAuth2 (Option B)
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      # Email (AWS SES SMTP)
+      # Google OAuth2
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Email (AWS SES SMTP or any SMTP)
       MAIL_HOST: ${MAIL_HOST:-email-smtp.us-east-1.amazonaws.com}
       MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_FROM: ${MAIL_FROM:-noreply@yourdomain.com}
       MAIL_VERIFICATION_URL: ${MAIL_VERIFICATION_URL:-http://localhost:8081/api/auth/verify-email}
       MAIL_RESET_URL: ${MAIL_RESET_URL:-http://localhost:3000/reset-password}
     volumes:
       - auth_keys:/home/spring/.auth-service/keys
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - auth-network
     restart: unless-stopped
 
 volumes:
-  mysql_data:
+  postgres_data:
     driver: local
   auth_keys:
     driver: local
