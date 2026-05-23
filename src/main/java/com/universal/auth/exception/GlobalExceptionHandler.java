@@ -1,6 +1,7 @@
 package com.universal.auth.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
         @ExceptionHandler(UserNotFoundException.class)
@@ -216,11 +218,12 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponse> handleGenericException(
                         Exception ex, HttpServletRequest request) {
+                log.error("Unhandled exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
                 ErrorResponse error = new ErrorResponse(
                                 LocalDateTime.now(),
                                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                                 "Internal Server Error",
-                                "An unexpected error occurred: " + ex.getMessage(),
+                                "An unexpected error occurred. Please try again later.",
                                 request.getRequestURI());
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
