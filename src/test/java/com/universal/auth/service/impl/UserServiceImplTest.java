@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +38,7 @@ class UserServiceImplTest {
     @Mock
     private ApplicationRepository applicationRepository;
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -80,9 +80,11 @@ class UserServiceImplTest {
         req.setUsername("newuser");
         req.setEmail("new@example.com");
         req.setPassword("password");
+        req.setAppId(1L);
 
-        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(app));
+        when(userRepository.existsByUsernameAndApplication_AppId("newuser", 1L)).thenReturn(false);
+        when(userRepository.existsByEmailAndApplication_AppId("new@example.com", 1L)).thenReturn(false);
         when(passwordEncoder.encode("password")).thenReturn("$2a$10$encoded");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> {
             User u = inv.getArgument(0);
@@ -104,8 +106,10 @@ class UserServiceImplTest {
         req.setUsername("john");
         req.setEmail("other@example.com");
         req.setPassword("password");
+        req.setAppId(1L);
 
-        when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(app));
+        when(userRepository.existsByUsernameAndApplication_AppId("john", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.createUser(req))
                 .isInstanceOf(DuplicateUsernameException.class);
@@ -118,9 +122,11 @@ class UserServiceImplTest {
         req.setUsername("newuser");
         req.setEmail("john@example.com");
         req.setPassword("password");
+        req.setAppId(1L);
 
-        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
-        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+        when(applicationRepository.findById(1L)).thenReturn(Optional.of(app));
+        when(userRepository.existsByUsernameAndApplication_AppId("newuser", 1L)).thenReturn(false);
+        when(userRepository.existsByEmailAndApplication_AppId("john@example.com", 1L)).thenReturn(true);
 
         assertThatThrownBy(() -> userService.createUser(req))
                 .isInstanceOf(DuplicateEmailException.class);

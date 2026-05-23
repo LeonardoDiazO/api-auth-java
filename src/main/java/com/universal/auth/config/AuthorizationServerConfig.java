@@ -10,15 +10,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
@@ -44,12 +48,19 @@ public class AuthorizationServerConfig {
     }
 
     /**
-     * Required by Spring Authorization Server to initialize (even with no clients).
-     * Exposes the /oauth2/jwks endpoint used by resource servers to validate tokens.
+     * Spring Authorization Server requires at least one registered client.
+     * This app uses its own /api/auth/* endpoints; the auth server is only needed
+     * to expose /oauth2/jwks for resource servers to validate JWTs.
+     * The placeholder client below satisfies the requirement without enabling OAuth2 flows.
      */
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        return new InMemoryRegisteredClientRepository();
+        RegisteredClient placeholder = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("internal-placeholder")
+                .clientSecret("{noop}placeholder")
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .build();
+        return new InMemoryRegisteredClientRepository(placeholder);
     }
 
     @Bean

@@ -7,12 +7,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 
 /**
  * Base class for integration tests.
@@ -50,7 +53,7 @@ public abstract class BaseIntegrationTest {
     protected UserRoleRepository userRoleRepository;
 
     @Autowired
-    protected BCryptPasswordEncoder passwordEncoder;
+    protected PasswordEncoder passwordEncoder;
 
     protected ApplicationEntity testApp;
     protected User testUser;
@@ -71,6 +74,8 @@ public abstract class BaseIntegrationTest {
         testUser.setEmail("test@example.com");
         testUser.setPasswordHash(passwordEncoder.encode("Test123!"));
         testUser.setIsActive(true);
+        testUser.setIsEmailVerified(true);
+        testUser.setApplication(testApp);
         testUser.setCreatedAt(LocalDateTime.now());
         testUser.setLastPasswordChange(LocalDateTime.now());
         testUser.setFailedLoginAttempts(0);
@@ -94,5 +99,10 @@ public abstract class BaseIntegrationTest {
         userRole.setRole(testRole);
         userRole.setApplication(testApp);
         userRoleRepository.save(userRole);
+    }
+
+    /** Wraps a request with a mock JWT so protected endpoints return 2xx instead of 401. */
+    protected MockHttpServletRequestBuilder authed(MockHttpServletRequestBuilder request) {
+        return request.with(jwt());
     }
 }

@@ -1,15 +1,9 @@
--- ================================================================
--- V3: Associate users with apps, add lockout and email verification
--- Designed for fresh installation (empty tables).
--- ================================================================
-
--- Add new columns to users
+-- V3: Associate users with apps, add lockout and email verification — H2 compatible (MODE=PostgreSQL)
 ALTER TABLE users ADD COLUMN app_id BIGINT;
 ALTER TABLE users ADD COLUMN locked_until TIMESTAMP NULL;
 ALTER TABLE users ADD COLUMN is_email_verified BOOLEAN DEFAULT FALSE;
 
 -- Remove global unique constraints (username/email are now unique per app)
--- PostgreSQL generates constraint names as <table>_<column>_key for inline UNIQUE definitions
 ALTER TABLE users DROP CONSTRAINT users_username_key;
 ALTER TABLE users DROP CONSTRAINT users_email_key;
 

@@ -1,8 +1,4 @@
--- ================================================================
--- V4: Social accounts, refresh tokens, email verifications
--- ================================================================
-
--- Social accounts: links a user to a Google (or future) provider identity
+-- V4: Social accounts, refresh tokens, email verifications — H2 compatible (MODE=PostgreSQL)
 CREATE TABLE social_accounts (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id BIGINT NOT NULL,
@@ -11,11 +7,9 @@ CREATE TABLE social_accounts (
   email VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_social_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-  -- A Google identity can only map to one user
   CONSTRAINT uk_provider_provideruserid UNIQUE (provider, provider_user_id)
 );
 
--- Refresh tokens with sliding window (60 min inactivity = expiry)
 CREATE TABLE refresh_tokens (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   token_hash VARCHAR(255) NOT NULL UNIQUE,
@@ -28,7 +22,6 @@ CREATE TABLE refresh_tokens (
   CONSTRAINT fk_rt_app FOREIGN KEY (app_id) REFERENCES applications(app_id) ON DELETE CASCADE
 );
 
--- Email verification tokens
 CREATE TABLE email_verifications (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id BIGINT NOT NULL,
@@ -39,7 +32,6 @@ CREATE TABLE email_verifications (
   CONSTRAINT fk_ev_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Indices
 CREATE INDEX idx_refresh_tokens_user_app ON refresh_tokens(user_id, app_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 CREATE INDEX idx_social_accounts_user_id ON social_accounts(user_id);

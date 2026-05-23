@@ -19,9 +19,9 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
         req.setPermissionName("EXPORT");
         req.setAppId(testApp.getAppId());
 
-        mockMvc.perform(post("/api/permissions")
+        mockMvc.perform(authed(post("/api/permissions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.permissionId").isNumber())
                 .andExpect(jsonPath("$.permissionName").value("EXPORT"));
@@ -34,16 +34,16 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
         req.setPermissionName("EXPORT");
         req.setAppId(9999L);
 
-        mockMvc.perform(post("/api/permissions")
+        mockMvc.perform(authed(post("/api/permissions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/permissions/{id} - success")
     void getPermissionById_success() throws Exception {
-        mockMvc.perform(get("/api/permissions/{id}", testPermission.getPermissionId()))
+        mockMvc.perform(authed(get("/api/permissions/{id}", testPermission.getPermissionId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.permissionId").value(testPermission.getPermissionId()))
                 .andExpect(jsonPath("$.permissionName").value("TEST_PERM"));
@@ -52,14 +52,14 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/permissions/{id} - not found: returns 404")
     void getPermissionById_notFound() throws Exception {
-        mockMvc.perform(get("/api/permissions/{id}", 9999L))
+        mockMvc.perform(authed(get("/api/permissions/{id}", 9999L)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/permissions - returns list")
     void getAllPermissions_returnsList() throws Exception {
-        mockMvc.perform(get("/api/permissions"))
+        mockMvc.perform(authed(get("/api/permissions")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -67,7 +67,7 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/permissions/application/{appId} - returns permissions for app")
     void getPermissionsByApplicationId_returnsList() throws Exception {
-        mockMvc.perform(get("/api/permissions/application/{appId}", testApp.getAppId()))
+        mockMvc.perform(authed(get("/api/permissions/application/{appId}", testApp.getAppId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -79,9 +79,9 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
         req.setPermissionName("IMPORT");
         req.setAppId(testApp.getAppId());
 
-        mockMvc.perform(put("/api/permissions/{id}", testPermission.getPermissionId())
+        mockMvc.perform(authed(put("/api/permissions/{id}", testPermission.getPermissionId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.permissionName").value("IMPORT"));
     }
@@ -89,20 +89,19 @@ class PermissionControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("DELETE /api/permissions/{id} - success: returns 204")
     void deletePermission_success() throws Exception {
-        // Create a throwaway permission
         var req = new PermissionRequest();
         req.setPermissionName("DELETE_ME");
         req.setAppId(testApp.getAppId());
 
-        String resp = mockMvc.perform(post("/api/permissions")
+        String resp = mockMvc.perform(authed(post("/api/permissions")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
         Long permId = objectMapper.readTree(resp).get("permissionId").asLong();
 
-        mockMvc.perform(delete("/api/permissions/{id}", permId))
+        mockMvc.perform(authed(delete("/api/permissions/{id}", permId)))
                 .andExpect(status().isNoContent());
     }
 }

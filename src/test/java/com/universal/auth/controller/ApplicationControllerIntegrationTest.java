@@ -19,9 +19,9 @@ class ApplicationControllerIntegrationTest extends BaseIntegrationTest {
         req.setAppName("Inventory System");
         req.setDescription("Stock management");
 
-        mockMvc.perform(post("/api/applications")
+        mockMvc.perform(authed(post("/api/applications")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.appId").isNumber())
                 .andExpect(jsonPath("$.appName").value("Inventory System"));
@@ -30,7 +30,7 @@ class ApplicationControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/applications/{id} - success")
     void getApplicationById_success() throws Exception {
-        mockMvc.perform(get("/api/applications/{id}", testApp.getAppId()))
+        mockMvc.perform(authed(get("/api/applications/{id}", testApp.getAppId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appId").value(testApp.getAppId()))
                 .andExpect(jsonPath("$.appName").value("Test App"));
@@ -39,14 +39,14 @@ class ApplicationControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/applications/{id} - not found: returns 404")
     void getApplicationById_notFound() throws Exception {
-        mockMvc.perform(get("/api/applications/{id}", 9999L))
+        mockMvc.perform(authed(get("/api/applications/{id}", 9999L)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/applications - returns list")
     void getAllApplications_returnsList() throws Exception {
-        mockMvc.perform(get("/api/applications"))
+        mockMvc.perform(authed(get("/api/applications")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -58,9 +58,9 @@ class ApplicationControllerIntegrationTest extends BaseIntegrationTest {
         req.setAppName("Updated App");
         req.setDescription("Updated description");
 
-        mockMvc.perform(put("/api/applications/{id}", testApp.getAppId())
+        mockMvc.perform(authed(put("/api/applications/{id}", testApp.getAppId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appName").value("Updated App"));
     }
@@ -68,19 +68,18 @@ class ApplicationControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("DELETE /api/applications/{id} - success: returns 204")
     void deleteApplication_success() throws Exception {
-        // Create a new app specifically to delete (testApp has FK dependencies)
         var req = new ApplicationRequest();
         req.setAppName("App To Delete");
 
-        String createResponse = mockMvc.perform(post("/api/applications")
+        String createResponse = mockMvc.perform(authed(post("/api/applications")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
         Long appId = objectMapper.readTree(createResponse).get("appId").asLong();
 
-        mockMvc.perform(delete("/api/applications/{id}", appId))
+        mockMvc.perform(authed(delete("/api/applications/{id}", appId)))
                 .andExpect(status().isNoContent());
     }
 }

@@ -20,9 +20,9 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
         req.setRoleName("MANAGER");
         req.setAppId(testApp.getAppId());
 
-        mockMvc.perform(post("/api/roles")
+        mockMvc.perform(authed(post("/api/roles")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.roleId").isNumber())
                 .andExpect(jsonPath("$.roleName").value("MANAGER"));
@@ -35,16 +35,16 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
         req.setRoleName("MANAGER");
         req.setAppId(9999L);
 
-        mockMvc.perform(post("/api/roles")
+        mockMvc.perform(authed(post("/api/roles")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/roles/{id} - success")
     void getRoleById_success() throws Exception {
-        mockMvc.perform(get("/api/roles/{id}", testRole.getRoleId()))
+        mockMvc.perform(authed(get("/api/roles/{id}", testRole.getRoleId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleId").value(testRole.getRoleId()))
                 .andExpect(jsonPath("$.roleName").value("TEST_ROLE"));
@@ -53,14 +53,14 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/roles/{id} - not found: returns 404")
     void getRoleById_notFound() throws Exception {
-        mockMvc.perform(get("/api/roles/{id}", 9999L))
+        mockMvc.perform(authed(get("/api/roles/{id}", 9999L)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("GET /api/roles - returns list")
     void getAllRoles_returnsList() throws Exception {
-        mockMvc.perform(get("/api/roles"))
+        mockMvc.perform(authed(get("/api/roles")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -68,7 +68,7 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("GET /api/roles/application/{appId} - returns roles for app")
     void getRolesByApplicationId_returnsList() throws Exception {
-        mockMvc.perform(get("/api/roles/application/{appId}", testApp.getAppId()))
+        mockMvc.perform(authed(get("/api/roles/application/{appId}", testApp.getAppId())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -80,9 +80,9 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
         req.setRoleName("UPDATED_ROLE");
         req.setAppId(testApp.getAppId());
 
-        mockMvc.perform(put("/api/roles/{id}", testRole.getRoleId())
+        mockMvc.perform(authed(put("/api/roles/{id}", testRole.getRoleId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.roleName").value("UPDATED_ROLE"));
     }
@@ -93,9 +93,9 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
         var req = new AssignPermissionRequest();
         req.setPermissionId(testPermission.getPermissionId());
 
-        mockMvc.perform(post("/api/roles/{id}/permissions", testRole.getRoleId())
+        mockMvc.perform(authed(post("/api/roles/{id}/permissions", testRole.getRoleId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.permissions", hasSize(greaterThanOrEqualTo(1))));
     }
@@ -103,37 +103,37 @@ class RoleControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("POST /api/roles/{id}/permissions - duplicate: returns 409")
     void assignPermission_duplicate() throws Exception {
-        // First assignment
         var req = new AssignPermissionRequest();
         req.setPermissionId(testPermission.getPermissionId());
-        mockMvc.perform(post("/api/roles/{id}/permissions", testRole.getRoleId())
+
+        // First assignment
+        mockMvc.perform(authed(post("/api/roles/{id}/permissions", testRole.getRoleId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)));
+                .content(objectMapper.writeValueAsString(req))));
 
         // Second assignment — should conflict
-        mockMvc.perform(post("/api/roles/{id}/permissions", testRole.getRoleId())
+        mockMvc.perform(authed(post("/api/roles/{id}/permissions", testRole.getRoleId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isConflict());
     }
 
     @Test
     @DisplayName("DELETE /api/roles/{id} - success: returns 204")
     void deleteRole_success() throws Exception {
-        // Create a role with no FK dependencies to safely delete it
         var req = new RoleRequest();
         req.setRoleName("DELETE_ME");
         req.setAppId(testApp.getAppId());
 
-        String resp = mockMvc.perform(post("/api/roles")
+        String resp = mockMvc.perform(authed(post("/api/roles")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                .content(objectMapper.writeValueAsString(req))))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
         Long roleId = objectMapper.readTree(resp).get("roleId").asLong();
 
-        mockMvc.perform(delete("/api/roles/{id}", roleId))
+        mockMvc.perform(authed(delete("/api/roles/{id}", roleId)))
                 .andExpect(status().isNoContent());
     }
 }
