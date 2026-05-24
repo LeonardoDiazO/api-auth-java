@@ -95,6 +95,8 @@ public class DataInitializer implements CommandLineRunner {
         admin.setFullName("System Administrator");
         admin.setPasswordHash(passwordEncoder.encode("Admin123!"));
         admin.setIsActive(true);
+        admin.setIsEmailVerified(true);
+        admin.setApplication(savedApp);
         admin.setCreatedAt(LocalDateTime.now());
         admin.setLastPasswordChange(LocalDateTime.now());
         admin.setFailedLoginAttempts(0);
