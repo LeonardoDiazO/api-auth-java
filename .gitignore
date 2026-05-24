@@ -4,6 +4,7 @@
 
 # Variables de entorno reales (usar .env.example como plantilla)
 .env
+**/resources/.env
 
 # Claves RSA generadas localmente
 *.key
