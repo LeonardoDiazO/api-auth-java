@@ -1,0 +1,12 @@
+-- Crea la base de datos de rentia-api en el mismo Postgres local que ya
+-- levanta este docker-compose para api-auth-java. Así "docker compose up"
+-- deja las dos bases de datos listas de una sola vez -- nada que crear a
+-- mano.
+--
+-- Postgres solo ejecuta los scripts de docker-entrypoint-initdb.d/ la
+-- PRIMERA vez que se inicializa el volumen (postgres_data vacío). Si ya
+-- tenías el volumen de antes, este script no corre retroactivamente:
+-- crea la base de datos una sola vez a mano (ver rentia-api/SETUP.md,
+-- sección A.1) o borra el volumen con `docker compose down -v` para que
+-- se reinicialice desde cero con este script incluido.
+CREATE DATABASE rentia_db OWNER auth_user;

@@ -18,6 +18,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Crea también rentia_db al inicializar el volumen -- ver
+      # docker/init-rentia-db.sql. Solo corre en un volumen NUEVO.
+      - ./docker/init-rentia-db.sql:/docker-entrypoint-initdb.d/init-rentia-db.sql:ro
     networks:
       - auth-network
     healthcheck:
