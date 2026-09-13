@@ -23,6 +23,17 @@
     </properties>
 
     <dependencies>
+        <!--
+            Carga .env automáticamente (ver .env.example) sin exportar nada a
+            mano. Aditivo: si no hay .env, el comportamiento no cambia, sigue
+            leyendo variables de entorno reales igual que antes.
+        -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
