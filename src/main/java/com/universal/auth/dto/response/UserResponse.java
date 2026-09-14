@@ -23,6 +23,7 @@ public class UserResponse {
     private LocalDateTime createdAt;
     private LocalDateTime lastPasswordChange;
     private Boolean isEmailVerified;
+    private Boolean mustChangePassword;
     private Long appId;
     private String appName;
 

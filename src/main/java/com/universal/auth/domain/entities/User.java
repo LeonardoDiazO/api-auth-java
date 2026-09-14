@@ -39,6 +39,11 @@ public class User {
     private LocalDateTime lockedUntil;
     private Boolean isEmailVerified = false;
 
+    // true tras crear el usuario con contraseña puesta por un admin, o tras
+    // un reset de contraseña por admin -- se limpia en el próximo cambio de
+    // contraseña exitoso del propio usuario (ver UserServiceImpl).
+    private Boolean mustChangePassword = false;
+
     // Every user belongs to exactly one application
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "app_id", nullable = false)

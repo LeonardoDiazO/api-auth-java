@@ -1,5 +1,6 @@
 package com.universal.auth.service;
 
+import com.universal.auth.dto.request.AdminResetPasswordRequest;
 import com.universal.auth.dto.request.AssignRoleRequest;
 import com.universal.auth.dto.request.ChangePasswordRequest;
 import com.universal.auth.dto.request.CreateUserRequest;
@@ -99,6 +100,14 @@ public interface UserService {
      *                                  password is invalid
      */
     void changePassword(Long userId, ChangePasswordRequest request);
+
+    /**
+     * Restablece la contraseña de OTRO usuario sin conocer la actual, y lo
+     * deja marcado para que tenga que cambiarla de nuevo en su próximo login.
+     * Quién puede llamar esto es responsabilidad de la aplicación que
+     * consume api-auth-java -- ver AdminResetPasswordRequest.
+     */
+    UserResponse resetPassword(Long userId, AdminResetPasswordRequest request);
 
     /**
      * Activate user

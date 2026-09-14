@@ -63,6 +63,7 @@ public class JwtTokenGenerator {
                 .claim("appName", application.getAppName())
                 .claim("roles", roles)
                 .claim("permissions", permissions)
+                .claim("mustChangePassword", Boolean.TRUE.equals(user.getMustChangePassword()))
                 .audience(List.of(application.getAppName()))
                 .build();
 

@@ -39,4 +39,9 @@ public class CreateUserRequest {
     private String fullName;
 
     private Boolean isActive = true;
+
+    // Solo lo usan flujos de creación por admin (POST /api/users). El
+    // auto-registro (POST /api/auth/register) nunca lo manda -- se queda en
+    // false, correcto: el usuario ya eligió su propia contraseña.
+    private Boolean mustChangePassword = false;
 }

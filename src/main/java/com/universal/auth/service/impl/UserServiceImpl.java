@@ -4,6 +4,7 @@ import com.universal.auth.domain.entities.ApplicationEntity;
 import com.universal.auth.domain.entities.Role;
 import com.universal.auth.domain.entities.User;
 import com.universal.auth.domain.entities.UserRole;
+import com.universal.auth.dto.request.AdminResetPasswordRequest;
 import com.universal.auth.dto.request.AssignRoleRequest;
 import com.universal.auth.dto.request.ChangePasswordRequest;
 import com.universal.auth.dto.request.CreateUserRequest;
@@ -58,6 +59,7 @@ public class UserServiceImpl implements UserService {
         user.setFullName(request.getFullName());
         user.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
         user.setIsEmailVerified(false);
+        user.setMustChangePassword(Boolean.TRUE.equals(request.getMustChangePassword()));
         user.setCreatedAt(LocalDateTime.now());
         user.setLastPasswordChange(LocalDateTime.now());
         user.setFailedLoginAttempts(0);
@@ -178,8 +180,24 @@ public class UserServiceImpl implements UserService {
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         user.setLastPasswordChange(LocalDateTime.now());
+        user.setMustChangePassword(false);
         user.setFailedLoginAttempts(0);
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse resetPassword(Long userId, AdminResetPasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setLastPasswordChange(LocalDateTime.now());
+        user.setMustChangePassword(true);
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+
+        return mapToResponse(userRepository.save(user));
     }
 
     @Override
@@ -220,6 +238,7 @@ public class UserServiceImpl implements UserService {
                 .fullName(user.getFullName())
                 .isActive(user.getIsActive())
                 .isEmailVerified(user.getIsEmailVerified())
+                .mustChangePassword(user.getMustChangePassword())
                 .appId(user.getApplication() != null ? user.getApplication().getAppId() : null)
                 .appName(user.getApplication() != null ? user.getApplication().getAppName() : null)
                 .createdAt(user.getCreatedAt())

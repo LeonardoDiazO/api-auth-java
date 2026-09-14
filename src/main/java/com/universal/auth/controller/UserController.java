@@ -1,5 +1,6 @@
 package com.universal.auth.controller;
 
+import com.universal.auth.dto.request.AdminResetPasswordRequest;
 import com.universal.auth.dto.request.AssignRoleRequest;
 import com.universal.auth.dto.request.ChangePasswordRequest;
 import com.universal.auth.dto.request.CreateUserRequest;
@@ -116,6 +117,20 @@ public class UserController {
             @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(id, request);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Restablece la contraseña de otro usuario sin conocer la actual (p. ej.
+     * SUPER_ADMIN restableciendo la de un ADMINISTRADOR/ARRENDATARIO). Deja
+     * al usuario marcado para cambiarla de nuevo en su próximo login.
+     * PUT /api/users/{id}/reset-password
+     */
+    @PutMapping("/{id}/reset-password")
+    public ResponseEntity<UserResponse> resetPassword(
+            @PathVariable Long id,
+            @Valid @RequestBody AdminResetPasswordRequest request) {
+        UserResponse response = userService.resetPassword(id, request);
+        return ResponseEntity.ok(response);
     }
 
     /**
