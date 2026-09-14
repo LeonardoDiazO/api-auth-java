@@ -18,6 +18,7 @@ public class PasswordReset {
     private LocalDateTime expiresAt;
     private Boolean isUsed = false;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private User user;
 }
